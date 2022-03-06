@@ -16,6 +16,9 @@ library(tidyverse)
 library(here)
 library(sf)
 library(tmap)
+library(gstat)
+library(stars)
+library(janitor)
 ```
 
 ## 1. Introduction
@@ -34,7 +37,31 @@ Data can also be downloaded from the [State of California Geoportal](https://gis
 oil <- read_csv(here("data", "Oil_Spill_Incident_Tracking_[ds394].csv"))
 ```
 
+
+```{r}
+
+# Read in the CA county data (TIGER shapefile):
+ca_counties_sf <- read_sf(here("data/ca_counties"), layer = "CA_Counties_TIGER2016") %>% 
+  janitor::clean_names() %>% 
+  select(name)
+
+# Check the projection
+st_crs(ca_counties_sf) 
+
+# Make a quick ggplot:
+ggplot() +
+  geom_sf(data = ca_counties_sf) +
+  geom_sf(data = oil, aes(color = "green"))
+```
+
 ***
+
+## 2. Data Wrangling 
+
+```{r}
+
+```
+
 
 ***
 
