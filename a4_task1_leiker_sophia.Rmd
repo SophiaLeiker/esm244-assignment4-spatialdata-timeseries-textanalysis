@@ -1,8 +1,10 @@
 ---
-title: "Assignment 4 - Task 1: Spatial data visualization (interactive map & choropleth)"
+title: "Assignment 4 - Task 1: Spatial Data Visualization"
 author: "Sophia Leiker"
 date: "3/6/2022"
-output: html_document
+output: 
+  html_document:
+    toc: true
 ---
 
 ```{r setup, include=TRUE, warning=FALSE, message=FALSE}
@@ -21,6 +23,8 @@ library(stars)
 library(janitor)
 ```
 
+![Sky News: California Oil Spill 2021](https://e3.365dm.com/21/10/2048x1152/skynews-oil-spill-california_5542731.jpg)
+
 ## 1. Introduction
 
 This report will carry out a spatial analysis using `tmap` to create an interactive map showing the location of soil spill events in california using the CA DFW Oil Spill Incident Tracking database. 
@@ -37,7 +41,7 @@ Data can also be downloaded from the [State of California Geoportal](https://gis
 oil <- read_sf(here("data", "Oil_Spill_Incident_Tracking_[ds394]", "Oil_Spill_Incident_Tracking_[ds394].shp"))
 
 # Check the projection
-st_crs(oil) 
+#st_crs(oil) 
 
 ```
 
@@ -50,7 +54,7 @@ ca_counties_sf <- read_sf(here("data/ca_counties"), layer = "CA_Counties_TIGER20
   select(name)
 
 # Check the projection
-st_crs(ca_counties_sf) 
+#st_crs(ca_counties_sf) 
 
 ```
 
@@ -75,7 +79,8 @@ tmap_mode("view")
 tm_shape(ca_counties_sf) +
   tm_polygons(alpha = 0) +
   tm_shape(oil) +
-  tm_dots(col = "navyblue")
+  tm_dots(col = "navyblue") +
+  tm_layout(title= 'Oil Spills in California from the CA DFW Oil Spill Incident Tracking')
 ```
 
 **Figure 1**: Figure 1 illustrates the distribution of oil spill events indicated in dark blue from the [CA DFW Oil Spill Incident Tracking dataset](https://map.dfg.ca.gov/metadata/ds0394.html) across California. California county boundaries are indicated in black
@@ -90,15 +95,12 @@ Wangling data
 oil_inland <- oil %>% 
   filter(INLANDMARI == "Inland") #filtering to keep inland
 
-oil_inland_county <- oil_inland %>% 
-  st_join(ca_counties_sf)
-
-oil_inland_county <- ca_counties_sf %>% 
+oil_inland_county <- ca_counties_sf %>%  #joining the datasets together
   st_join(oil_inland)
 
-oil_counts <- oil_inland_county %>% 
+oil_counts <- oil_inland_county %>% #group by county for total number of oil spills
   group_by(name) %>% 
-  summarize(total_spills = sum(!is.na(DFGCONTROL)))
+  summarize(Total_Spills = sum(!is.na(DFGCONTROL)))
   
 ``` 
 
@@ -108,15 +110,19 @@ Oil Spill Events by County in 2008
 ```{r}
 
 ggplot() +
-  geom_sf(data = oil_counts, aes(fill = total_spills)) +
+  geom_sf(data = oil_counts, aes(fill = Total_Spills)) +
   theme_minimal() +
-  labs(title = "Oil Spill Events by CA County in 2008", subtitle = "Data from: CA DFW Oil Spill Incident Tracking dataset")
+  labs(title = "Oil Spill Events by California County in 2008", subtitle = "Data from: CA DFW Oil Spill Incident Tracking dataset") +
+  scale_fill_gradientn(colors = c("purple4", "firebrick2", "gold"))
   
 
 ```
 
+**Figure 2** : Total oil spills in 2008 per California County. A higher number of spills is indicated by yellow, a lower number of spills is indicated by purple. 
 
-## X. Data Citation
+***
+
+## 4. Data Citation
 
 Data source:  Mark Lampinen, Department of Fish and Game, Office of Spill Prevention and Response, 916 322-4777 [CA DFW Oil Spill Incident Tracking dataset](https://map.dfg.ca.gov/metadata/ds0394.html)
 
