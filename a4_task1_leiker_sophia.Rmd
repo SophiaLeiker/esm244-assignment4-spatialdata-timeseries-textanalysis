@@ -34,7 +34,11 @@ Data can also be downloaded from the [State of California Geoportal](https://gis
 
 ```{r}
 # Reading in the data
-oil <- read_csv(here("data", "Oil_Spill_Incident_Tracking_[ds394].csv"))
+oil <- read_sf(here("data", "Oil_Spill_Incident_Tracking_[ds394]", "Oil_Spill_Incident_Tracking_[ds394].shp"))
+
+# Check the projection
+st_crs(oil) 
+
 ```
 
 
@@ -48,25 +52,72 @@ ca_counties_sf <- read_sf(here("data/ca_counties"), layer = "CA_Counties_TIGER20
 # Check the projection
 st_crs(ca_counties_sf) 
 
-# Make a quick ggplot:
-ggplot() +
-  geom_sf(data = ca_counties_sf) +
-  geom_sf(data = oil, aes(color = "green"))
 ```
 
 ***
 
-## 2. Data Wrangling 
+## 2. Plotting Oil Data on CA Counties
+
+```{r}
+#testing a plot to make sure the plot runs
+#ggplot() +
+ # geom_sf(data = ca_counties_sf) +
+  #geom_sf(data = oil)
+```
+
+
+
+```{r}
+# TSetting Tmap to plot:
+tmap_mode("view")
+
+#Mapping with the oil data and the county data
+tm_shape(ca_counties_sf) +
+  tm_polygons(alpha = 0) +
+  tm_shape(oil) +
+  tm_dots(col = "navyblue")
+```
+
+**Figure 1**: Figure 1 illustrates the distribution of oil spill events indicated in dark blue from the [CA DFW Oil Spill Incident Tracking dataset](https://map.dfg.ca.gov/metadata/ds0394.html) across California. California county boundaries are indicated in black
+
+***
+
+## 3. Cholopleth Map of Inland Oil Spills by CA County
+
+Wangling data
+
+```{r}
+oil_inland <- oil %>% 
+  filter(INLANDMARI == "Inland") #filtering to keep inland
+
+oil_inland_county <- oil_inland %>% 
+  st_join(ca_counties_sf)
+
+oil_inland_county <- ca_counties_sf %>% 
+  st_join(oil_inland)
+
+oil_counts <- oil_inland_county %>% 
+  group_by(name) %>% 
+  summarize(total_spills = sum(!is.na(DFGCONTROL)))
+  
+``` 
+
+
+Oil Spill Events by County in 2008
 
 ```{r}
 
+ggplot() +
+  geom_sf(data = oil_counts, aes(fill = total_spills)) +
+  theme_minimal() +
+  labs(title = "Oil Spill Events by CA County in 2008", subtitle = "Data from: CA DFW Oil Spill Incident Tracking dataset")
+  
+
 ```
 
 
-***
-
 ## X. Data Citation
 
-Data source: [Google Earth Engine](https://earthengine.google.com/) where publicly available remote sensing datasets have been uploaded. Most of the data is derived by calculating the mean for each country at a reduction scale of about 10km.” 
+Data source:  Mark Lampinen, Department of Fish and Game, Office of Spill Prevention and Response, 916 322-4777 [CA DFW Oil Spill Incident Tracking dataset](https://map.dfg.ca.gov/metadata/ds0394.html)
 
 ## END TASK 
