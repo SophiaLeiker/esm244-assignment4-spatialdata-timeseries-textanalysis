@@ -21,15 +21,22 @@ library(slider)
 
 ```
 
-![Photo credit: Willamette Falls Trust ](https://images.squarespace-cdn.com/content/v1/5c33c4d3b1059881395762dd/1636003105157-PSJVWMNO33XHWUW3Z9R3/20211029_125404.jpg?format=1500w)
+
 
 ## 1. Introduction {.tabset .tabset-pills}
 
-**Summary** This report will explore *time series assessments* of adult passage of coho, jack coho, and steelhead salmon in Willamette Falls. 
+**Summary** This report will explore *time series assessments* of adult passage of coho, jack coho, and steelhead salmon in Willamette Falls. Willamette Falls is a natural waterfall on the Willamette River between Oregon City and West Linn, Oregon, in the United States and has an abundance of salmon.
+
+![Willamette Falls, Photo credit: Willamette Falls Trust ](https://images.squarespace-cdn.com/content/v1/5c33c4d3b1059881395762dd/1636003105157-PSJVWMNO33XHWUW3Z9R3/20211029_125404.jpg?format=1500w)
+
+
+#### Data
 
 **Data Source:** The data used for analysis is from the [Columbia River DART Real Time Data Acess](http://www.cbr.washington.edu/dart/query/adult_graph_text). The database system is developed and maintained by the University of Washington School of Aquatic & Fish Sciences Columbia Basin Research Center. 
 
 DART(Data Access in Real Time) provides interactive, timely access to integrated Columbia Basin salmonid, environmental, hydrosystem operations, riverine, ocean and climatic data resources. Includes raw and summary data, aggregate data analysis, stock status, ESU populations, conversion rates and fish-environment exposure information. All resources are publicly available.
+
+#### Location of Willamette Falls
 
 ![Figure 1: Location of Willamette Falls, Photo Credit: San Fransisco Chronicle](https://s.hdnux.com/photos/01/00/14/06/16826794/5/1200x0.jpg)
 
@@ -123,7 +130,6 @@ ggplot(data = steelhead, aes(x=date, y = count)) +
 - During the monitoring years visualized here, overall steelhead had the largest abundance over both coho and jack coho
 - Cojo had fairly low abundance (under 500 fish counts per day) in the years 2001 to 2009, but after 2009 their abundance had two notable spikes 
 - Visually there seems to be seasonality in when fish pass through this fish ladder. Cojo and jack cojo had abundance spikes later in the calendar year, while steelhead had abundance spikes earlier in the calendar year
-
 
 ### B. 
 
