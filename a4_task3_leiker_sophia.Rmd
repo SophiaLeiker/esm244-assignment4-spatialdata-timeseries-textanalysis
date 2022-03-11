@@ -1,0 +1,59 @@
+---
+title: 'Assignment 4 - Task 3: Text Wrangling and Analysis'
+author: "Sophia Leiker"
+date: "3/11/2022"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+library(tidyverse)
+library(tidytext)
+library(textdata)
+library(pdftools)
+library(ggwordcloud)
+```
+
+![Sky News: California Oil Spill 2021](https://e3.365dm.com/21/10/2048x1152/skynews-oil-spill-california_5542731.jpg)
+
+## 1. Introduction
+
+This report will wrangle text files and carry out an analysis of most frequent words and sentiment analysis 
+
+
+**Data Source:** The data used for analysis is from the [CA DFW Oil Spill Incident Tracking dataset](https://map.dfg.ca.gov/metadata/ds0394.html). 
+
+
+```{r}
+#reading in the data
+eden <- pdf_text(here::here('data', 'east_of_eden.pdf'))
+```
+
+
+```{r}
+#testing for page number
+eden34 <- eden[34]
+```
+
+```{r}
+eden_lines <- data.frame(eden) %>%  #this is breaking it down into each of the pages
+  mutate(page = 1:n()) %>% #each row is a page, so create a column called page, starting with a 1 and then continuing down to put a number to each of the pages
+  mutate(text_full = str_split(eden, pattern = '\\n')) %>% 
+  #taking the hobbit text of each individual page and breaking up the lines by using the \n line break, the extra slash is to ensure that you are asking for a backslash
+  unnest(text_full) %>% 
+  mutate(text_full = str_trim(text_full)) 
+```
+
+
+```{r}
+eden_chapts <- eden_lines %>% 
+  slice(-(1:181)) %>% #dropping the first lines 
+  mutate(chapter = ifelse(str_detect(text_full, "Chapter"), text_full, NA)) %>% #this is saying if you are in full text column, and detect "Chapter", then save that whole line and save it to the "chapter" column, if you do not then don't do anything 
+  fill(chapter, .direction = 'down') %>% #filling for chapters
+  separate(col = chapter, into = c("ch", "no"), sep = " ")
+  #this will separate a column into 2 different columns, take chapter column, separate it into the word chapter, and then the number
+```
+
