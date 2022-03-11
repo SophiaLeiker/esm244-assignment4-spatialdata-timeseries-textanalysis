@@ -81,7 +81,7 @@ fish_monthly <- fish_monthly %>%
 ```
 
 
-### A. Time Series
+### Time Series
 
 #### Adult passage for Coho, Jack Coho, and Steelhead 
 
@@ -131,8 +131,50 @@ ggplot(data = steelhead, aes(x=date, y = count)) +
 - Cojo had fairly low abundance (under 500 fish counts per day) in the years 2001 to 2009, but after 2009 their abundance had two notable spikes 
 - Visually there seems to be seasonality in when fish pass through this fish ladder. Cojo and jack cojo had abundance spikes later in the calendar year, while steelhead had abundance spikes earlier in the calendar year
 
-### B. 
+### Season Plots 
+
+```{r}
+fish_longer %>% 
+  gg_season(y = count) +
+  labs(x = "Month", y = "Fish Counts") +
+  theme_minimal() +
+  labs(title = "Seaon Plot of Fish Counts by Month", subtitle = "Data From: Columbia River DART Real Time Data Acess")
+  
+```
+
+**Figure 5**: Season plots of fish count by month for coho, jack coho and steelhead. Horizontal axis represents months with each of the different colored lines representing data for an individual year
+
+**Summary and Takeaways**
+
+- Seasonal patterns can be observed across all three species with more distinct seasonality for coho and jack coho represented by clearly defined spikes in their season plot
+- Coho and jack coho pass the falls at similar times (around the month of October), while steelhead have a longer, more spread out seasonal passage ranging from February to late summer.
+- While is is visually hard to differentiate years for steelhead, coho seemed to had higher abundance passing through the falls in the years 2009 and 2010 as seen by the much higher spike in their season plot.
 
 
-### C.
+### Annual Totals
 
+```{r}
+fish_year <- fish_longer %>% 
+  index_by(year = ~year(.)) %>% 
+  group_by(species) %>% 
+  summarize(yearly_count = sum(count)) %>% 
+  mutate(species = case_when(
+    species == "coho" ~ "Coho",
+    species == "jack_coho" ~ "Jack Coho", 
+    species == "steelhead" ~ "Steelhead"))
+
+ggplot(data = fish_year, aes(x = year, y = yearly_count, color = species)) +  
+  geom_line(size = 1.5) +
+  scale_x_continuous(n.breaks =10) +
+  theme_minimal() +
+  scale_color_manual(values = c("blue", "forestgreen", "darkorange2")) +
+  labs(x = "Year", y = "Count Total per Year", title = "Total Fish Counts by Year", subtitle = "Data From: Columbia River DART Real Time Data Acess")
+```
+
+**Figure 6**: Total counts of coho, jack coho and steelhead passing through Wilamette Falls per year. The blue line represents coho counts, green line represents jack coho counts, and orange line represents steelhead counts.
+
+**Summary and Takeaways**
+
+- Jack Coho populations seem to be relatively stable, with lower overall abundance compared to cojo and steelhead population
+- Coho populations were slightly above jack coho populations from 200 to 2008, but after 2008 there was a clear spike in the number of fish flowing through Willamete Falls 
+- Steelhead abundance was fairly volitile from 200-2005 with spikes reaching up to the 50,000s, but overall have dropped in numbers to lower levels from 2005 onward. From 2009-2010 there seems to be a positive spike in reported steehead. 
