@@ -17,7 +17,7 @@ library(pdftools)
 library(ggwordcloud)
 ```
 
-![Sky News: California Oil Spill 2021](https://e3.365dm.com/21/10/2048x1152/skynews-oil-spill-california_5542731.jpg)
+![East of Eden Cover](https://images-na.ssl-images-amazon.com/images/I/91ZuwqPXv6L.jpg)
 
 ## 1. Introduction
 
@@ -26,34 +26,158 @@ This report will wrangle text files and carry out an analysis of most frequent w
 
 **Data Source:** The data used for analysis is from the [CA DFW Oil Spill Incident Tracking dataset](https://map.dfg.ca.gov/metadata/ds0394.html). 
 
-
+Reading in East of Eden PDF
 ```{r}
 #reading in the data
 eden <- pdf_text(here::here('data', 'east_of_eden.pdf'))
 ```
 
-
+Checking that the text was read in correctly by testing the page number
 ```{r}
 #testing for page number
 eden34 <- eden[34]
 ```
 
+
+## 2. Wordcloud
+
+Breaking it up into lines
 ```{r}
 eden_lines <- data.frame(eden) %>%  #this is breaking it down into each of the pages
-  mutate(page = 1:n()) %>% #each row is a page, so create a column called page, starting with a 1 and then continuing down to put a number to each of the pages
+  mutate(page = 1:n()) %>% #each row is a page
   mutate(text_full = str_split(eden, pattern = '\\n')) %>% 
-  #taking the hobbit text of each individual page and breaking up the lines by using the \n line break, the extra slash is to ensure that you are asking for a backslash
+  #taking the text of each individual page and breaking up the lines by using the \n line break
   unnest(text_full) %>% 
-  mutate(text_full = str_trim(text_full)) 
+  mutate(text_full = str_trim(text_full))
 ```
 
-
+Breaking up into Chapters
 ```{r}
 eden_chapts <- eden_lines %>% 
   slice(-(1:181)) %>% #dropping the first lines 
   mutate(chapter = ifelse(str_detect(text_full, "Chapter"), text_full, NA)) %>% #this is saying if you are in full text column, and detect "Chapter", then save that whole line and save it to the "chapter" column, if you do not then don't do anything 
   fill(chapter, .direction = 'down') %>% #filling for chapters
-  separate(col = chapter, into = c("ch", "no"), sep = " ")
+  separate(col = chapter, into = c("ch", "no"), sep = " ") %>% 
+  slice(-(1:2))
   #this will separate a column into 2 different columns, take chapter column, separate it into the word chapter, and then the number
 ```
 
+Word Count by Chapter
+```{r}
+eden_words <- eden_chapts %>% 
+  unnest_tokens(word, text_full) %>% 
+  select(-eden)
+```
+
+```{r}
+eden_wordcount <- eden_words %>% 
+  count(ch, word) #grouping by chapter and then word
+#new df, for each word in each chapter how many times it shows up
+```
+
+Removing Stop Words
+```{r}
+head(stop_words)
+ 
+eden_words_clean <- eden_words %>% 
+  anti_join(stop_words, by = 'word') 
+#takes the stop words and takes out the stopwords (drops all of them)
+```
+
+```{r}
+nonstop_counts <- eden_words_clean %>% 
+  count(no, word)
+```
+
+
+Top 5 Words from Each Chapter
+
+```{r}
+top_5_words <- nonstop_counts %>% 
+  group_by(no) %>% 
+  arrange(-n) %>% #arranging in decending order by number of words
+  slice(1:5) %>% #slicing by 1st through 5th value of each group
+  ungroup()
+ 
+# Make some graphs: 
+ggplot(data = top_5_words, aes(x = n, y = word)) +
+  geom_col(fill = "blue") +
+  facet_wrap(~no, scales = "free")
+```
+
+Word Cloud for Chapter 1
+```{r}
+ch1_top100 <- nonstop_counts %>% 
+  filter(no == 1) %>% 
+  arrange(-n) %>% 
+  slice(1:100)
+```
+
+```{r}
+ch1_cloud <- ggplot(data = ch1_top100, aes(label = word)) +
+  geom_text_wordcloud(aes(color = n, size = n), shape = "diamond") +
+  #color based on the amount of words
+  scale_size_area(max_size = 6) +
+  scale_color_gradientn(colors = c("darkgreen","blue","purple")) + #gives a list of colors and then it will create a scale out of this 
+  theme_minimal()
+ 
+ch1_cloud
+```
+
+## 3. Sentiment Analysis
+
+```{r}
+get_sentiments(lexicon = "afinn")
+get_sentiments(lexicon = "bing")
+```
+
+
+### Sentiment analysis with afinn: 
+
+First, bind words in `hobbit_nonstop_words` to `afinn` lexicon:
+```{r}
+eden_afinn <- eden_words_clean %>% 
+  inner_join(get_sentiments("afinn"), by = 'word')
+```
+
+Let's find some counts (by sentiment ranking):
+```{r}
+afinn_counts <- eden_afinn %>% 
+  count(no, value)
+
+arrange(afinn_counts, no)
+ 
+# Plot them: 
+ggplot(data = afinn_counts, aes(x = value, y = n)) +
+  geom_col() +
+  facet_wrap(~no)
+ 
+# Find the mean afinn score by chapter: 
+afinn_means <- eden_afinn %>% 
+  group_by(no) %>% 
+  summarize(mean_afinn = mean(value))
+ 
+ggplot(data = afinn_means, 
+       aes(x = fct_rev(factor(no)), #this converts chapter number to be 1-20
+           y = mean_afinn)) +
+           # y = fct_rev(as.factor(chapter)))) +
+  geom_col() +
+  coord_flip()
+```
+
+```{r}
+eden_nrc <- eden_words_clean %>% 
+  inner_join(get_sentiments("nrc"))
+```
+Let's find the count of words by chapter and sentiment bin: 
+
+```{r}
+eden_nrc_counts <- eden_nrc %>% 
+  count(no, sentiment)
+ 
+ 
+ggplot(data = eden_nrc_counts, aes(x = sentiment, y = n)) +
+  geom_col() +
+  facet_wrap(~no) +
+  coord_flip()
+```
