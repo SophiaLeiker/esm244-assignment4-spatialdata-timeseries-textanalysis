@@ -119,7 +119,7 @@ ggplot(data = top_5_words1, aes(x = n, y = word)) +
 
 ```
 
-**Figure 1**: Top 5 Words East of Eden by chapter after removing stop words. Chapters 1-20 visualized here. 
+**Figure 1**: Top 5 Words East of Eden by chapter after removing stop words. Chapters 1-30 visualized here. 
 
 
 #### Chatpers 30-55
@@ -141,7 +141,7 @@ ggplot(data = top_5_words2, aes(x = n, y = word)) +
 
 ***
 
-### B.Word Cloud for Chapter 1
+### B. Word Cloud for Chapter 1
 ```{r}
 ch1_top100 <- nonstop_counts %>% 
   filter(chapter == 1) %>% 
@@ -152,9 +152,8 @@ ch1_top100 <- nonstop_counts %>%
 ```{r}
 ch1_cloud <- ggplot(data = ch1_top100, aes(label = word)) +
   geom_text_wordcloud(aes(color = n, size = n), shape = "diamond") +
-  #color based on the amount of words
   scale_size_area(max_size = 6) +
-  scale_color_gradientn(colors = c("darkgreen","blue","purple")) + #gives a list of colors and then it will create a scale out of this 
+  scale_color_gradientn(colors = c("darkgreen","blue","purple")) + 
   theme_minimal()
  
 ch1_cloud
@@ -166,7 +165,7 @@ ch1_cloud
 
 ## 3. Sentiment Analysis
 
-```{r}
+```{r include=FALSE}
 get_sentiments(lexicon = "afinn")
 get_sentiments(lexicon = "bing")
 ```
@@ -174,13 +173,13 @@ get_sentiments(lexicon = "bing")
 
 ### A. Sentiment analysis with Afinn: 
 
-First, bind words in `hobbit_nonstop_words` to `afinn` lexicon:
+First, bind words in `eden_nonstop_words` to `afinn` lexicon:
 ```{r}
 eden_afinn <- eden_words_clean %>% 
   inner_join(get_sentiments("afinn"), by = 'word')
 ```
 
-Let's find some counts (by sentiment ranking):
+Find counts (by sentiment ranking):
 ```{r}
 afinn_counts <- eden_afinn %>% 
   count(chapter, value)
@@ -224,20 +223,23 @@ eden_nrc_counts <- eden_nrc %>%
   count(chapter, sentiment)
  
 eden_nrc_counts1 <- eden_nrc_counts %>% 
-  filter(chapter %in% c(1:30))
- 
+  filter(chapter %in% c(1:20))
+
 eden_nrc_counts2 <- eden_nrc_counts %>% 
-  filter(chapter %in% c(31:55))
+  filter(chapter %in% c(21:39))
+ 
+eden_nrc_counts3 <- eden_nrc_counts %>% 
+  filter(chapter %in% c(40:55))
 
 
 ggplot(data = eden_nrc_counts1, aes(x = sentiment, y = n)) +
   geom_col(fill = "forestgreen") +
   facet_wrap(~chapter) +
   coord_flip() +
-  labs(title = "Sentiment Analysis of East of Eden using NRC (Chapters 1-30)", subtitle = "East of Eden: John Steinback", x = "Sentiment", y= "Chapter")
+  labs(title = "Sentiment Analysis of East of Eden using NRC (Chapters 1-20)", subtitle = "East of Eden: John Steinback", x = "Sentiment", y= "Chapter")
 ```
 
-**Figure 5**: Sentiment Analysis of East of Eden using AFINN for Chapters 1-30
+**Figure 5**: Sentiment Analysis of East of Eden using AFINN for Chapters 1-20
 
 
 ```{r}
@@ -245,10 +247,22 @@ ggplot(data = eden_nrc_counts2, aes(x = sentiment, y = n)) +
   geom_col(fill = "forestgreen") +
   facet_wrap(~chapter) +
   coord_flip() +
-  labs(title = "Sentiment Analysis of East of Eden using NRC (Chapters 31-55)", subtitle = "East of Eden: John Steinback", x = "Sentiment", y= "Chapter")
+  labs(title = "Sentiment Analysis of East of Eden using NRC (Chapters 21-39)", subtitle = "East of Eden: John Steinback", x = "Sentiment", y= "Chapter")
 ```
 
-**Figure 6**: Sentiment Analysis of East of Eden using AFINN for Chapters 1-30
+**Figure 6**: Sentiment Analysis of East of Eden using AFINN for Chapters 21-39
+
+```{r}
+ggplot(data = eden_nrc_counts2, aes(x = sentiment, y = n)) +
+  geom_col(fill = "forestgreen") +
+  facet_wrap(~chapter) +
+  coord_flip() +
+  labs(title = "Sentiment Analysis of East of Eden using NRC (Chapters 21-39)", subtitle = "East of Eden: John Steinback", x = "Sentiment", y= "Chapter")
+```
+
+**Figure 7**: Sentiment Analysis of East of Eden using AFINN for Chapters 40-55
 
 ***
+
+END
 
